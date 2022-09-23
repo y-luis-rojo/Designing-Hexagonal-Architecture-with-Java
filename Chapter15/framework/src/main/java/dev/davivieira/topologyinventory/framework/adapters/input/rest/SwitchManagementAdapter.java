@@ -14,6 +14,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.DELETE;
@@ -29,9 +30,9 @@ import javax.ws.rs.core.Response;
 public class SwitchManagementAdapter {
 
     @Inject
-    SwitchManagementUseCase switchManagementUseCase;
+    Instance<SwitchManagementUseCase> switchManagementUseCase;
     @Inject
-    RouterManagementUseCase routerManagementUseCase;
+    Instance<RouterManagementUseCase> routerManagementUseCase;
 
     @Transactional
     @GET
@@ -39,7 +40,7 @@ public class SwitchManagementAdapter {
     @Operation(operationId = "retrieveSwitch", description = "Retrieve a switch from an edge router")
     public Uni<Response> retrieveSwitch(@PathParam("id") Id switchId) {
         return Uni.createFrom()
-                .item(switchManagementUseCase.retrieveSwitch(switchId))
+                .item(switchManagementUseCase.get().retrieveSwitch(switchId))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -53,20 +54,20 @@ public class SwitchManagementAdapter {
     public Uni<Response> createAndAddSwitchToEdgeRouter(
             CreateSwitch createSwitch, @PathParam("edgeRouterId") String edgeRouterId
     ) {
-        Switch newSwitch = switchManagementUseCase.
-                createSwitch(
+        Switch newSwitch = switchManagementUseCase.get()
+                .createSwitch(
                         createSwitch.getVendor(),
                         createSwitch.getModel(),
                         IP.fromAddress(createSwitch.getIp()),
                         createSwitch.getLocation(),
                         createSwitch.getSwitchType());
-        Router edgeRouter = routerManagementUseCase.retrieveRouter(Id.withId(edgeRouterId));
-        if(!edgeRouter.getRouterType().equals(RouterType.EDGE))
+        Router edgeRouter = routerManagementUseCase.get().retrieveRouter(Id.withId(edgeRouterId));
+        if (!edgeRouter.getRouterType().equals(RouterType.EDGE))
             throw new UnsupportedOperationException("Please inform the id of an edge router to add a switch");
-        Router router = switchManagementUseCase.addSwitchToEdgeRouter(newSwitch, (EdgeRouter) edgeRouter);
+        Router router = switchManagementUseCase.get().addSwitchToEdgeRouter(newSwitch, (EdgeRouter) edgeRouter);
 
         return Uni.createFrom()
-                .item((EdgeRouter) routerManagementUseCase.persistRouter(router))
+                .item((EdgeRouter) routerManagementUseCase.get().persistRouter(router))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -79,15 +80,15 @@ public class SwitchManagementAdapter {
     @Operation(operationId = "removeSwitch", description = "Retrieve a router from the network inventory")
     public Uni<Response> removeSwitchFromEdgeRouter(
             @PathParam("switchId") String switchId, @PathParam("edgeRouterId") String edgeRouterId) {
-        EdgeRouter edgeRouter = (EdgeRouter) routerManagementUseCase
+        EdgeRouter edgeRouter = (EdgeRouter) routerManagementUseCase.get()
                 .retrieveRouter(Id.withId(edgeRouterId));
-        Switch networkSwitch = switchManagementUseCase.retrieveSwitch(Id.withId(switchId));
+        Switch networkSwitch = switchManagementUseCase.get().retrieveSwitch(Id.withId(switchId));
 
-        Router router = switchManagementUseCase
+        Router router = switchManagementUseCase.get()
                 .removeSwitchFromEdgeRouter(networkSwitch, edgeRouter);
 
         return Uni.createFrom()
-                .item((EdgeRouter) routerManagementUseCase.persistRouter(router))
+                .item((EdgeRouter) routerManagementUseCase.get().persistRouter(router))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()

@@ -8,8 +8,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>domain</module>
-    <module>domain/inventory-core-domain</module>
-    <module>domain/status-sub-domain</module>
     <module>application</module>
     <module>framework</module>
     <module>bootstrap</module>

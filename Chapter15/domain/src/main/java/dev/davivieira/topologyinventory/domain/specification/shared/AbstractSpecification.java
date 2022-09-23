@@ -1,6 +1,5 @@
 package dev.davivieira.topologyinventory.domain.specification.shared;
 
-import dev.davivieira.topologyinventory.domain.entity.EdgeRouter;
 import dev.davivieira.topologyinventory.domain.exception.GenericSpecificationException;
 
 public abstract class AbstractSpecification<T> implements Specification<T> {

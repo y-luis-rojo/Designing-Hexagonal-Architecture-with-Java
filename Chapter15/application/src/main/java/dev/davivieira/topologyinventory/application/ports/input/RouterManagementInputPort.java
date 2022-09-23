@@ -14,13 +14,14 @@ import dev.davivieira.topologyinventory.domain.vo.Vendor;
 import dev.davivieira.topologyinventory.status.RouterInfo;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 @ApplicationScoped
 public class RouterManagementInputPort implements RouterManagementUseCase {
 
     @Inject
-    RouterManagementOutputPort routerManagementOutputPort;
+    Instance<RouterManagementOutputPort> routerManagementOutputPort;
 
     @Override
     public Router createRouter(Id id,
@@ -40,17 +41,17 @@ public class RouterManagementInputPort implements RouterManagementUseCase {
 
     @Override
     public Router removeRouter(Id id) {
-        return routerManagementOutputPort.removeRouter(id);
+        return routerManagementOutputPort.get().removeRouter(id);
     }
 
     @Override
     public Router retrieveRouter(Id id) {
-        return routerManagementOutputPort.retrieveRouter(id);
+        return routerManagementOutputPort.get().retrieveRouter(id);
     }
 
     @Override
     public Router persistRouter(Router router) {
-        return routerManagementOutputPort.persistRouter(router);
+        return routerManagementOutputPort.get().persistRouter(router);
     }
 
     @Override

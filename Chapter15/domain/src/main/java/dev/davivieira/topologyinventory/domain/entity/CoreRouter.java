@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Getter
 @ToString
-public class CoreRouter extends Router{
+public class CoreRouter extends Router {
 
     @Setter
     private Map<Id, Router> routers;
@@ -49,11 +49,11 @@ public class CoreRouter extends Router{
 
         switch (anyRouter.routerType) {
             case CORE:
-                var coreRouter = (CoreRouter)anyRouter;
+                var coreRouter = (CoreRouter) anyRouter;
                 emptyRoutersSpec.check(coreRouter);
                 break;
             case EDGE:
-                var edgeRouter = (EdgeRouter)anyRouter;
+                var edgeRouter = (EdgeRouter) anyRouter;
                 emptySwitchSpec.check(edgeRouter);
         }
         return this.routers.remove(anyRouter.id);

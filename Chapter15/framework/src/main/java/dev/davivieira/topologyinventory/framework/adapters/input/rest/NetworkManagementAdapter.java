@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.DELETE;
@@ -26,16 +27,16 @@ import javax.ws.rs.core.Response;
 public class NetworkManagementAdapter {
 
     @Inject
-    SwitchManagementUseCase switchManagementUseCase;
+    Instance<SwitchManagementUseCase> switchManagementUseCase;
     @Inject
-    NetworkManagementUseCase networkManagementUseCase;
+    Instance<NetworkManagementUseCase> networkManagementUseCase;
 
     @Transactional
     @POST
     @Path("/add/{switchId}")
     @Operation(operationId = "addNetworkToSwitch", description = "Add network to a switch")
     public Uni<Response> addNetworkToSwitch(AddNetwork addNetwork, @PathParam("switchId") String switchId) {
-        Switch networkSwitch = switchManagementUseCase.retrieveSwitch(Id.withId(switchId));
+        Switch networkSwitch = switchManagementUseCase.get().retrieveSwitch(Id.withId(switchId));
 
         Network network = Network.builder()
                 .networkAddress(IP.fromAddress(addNetwork.getNetworkAddress()))
@@ -44,7 +45,7 @@ public class NetworkManagementAdapter {
                 .build();
 
         return Uni.createFrom()
-                .item(networkManagementUseCase.addNetworkToSwitch(network, networkSwitch))
+                .item(networkManagementUseCase.get().addNetworkToSwitch(network, networkSwitch))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -56,10 +57,10 @@ public class NetworkManagementAdapter {
     @Path("/{networkName}/from/{switchId}")
     @Operation(operationId = "removeNetworkFromSwitch", description = "Remove network from a switch")
     public Uni<Response> removeNetworkFromSwitch(@PathParam("networkName") String networkName, @PathParam("switchId") String switchId) {
-        Switch networkSwitch = switchManagementUseCase.retrieveSwitch(Id.withId(switchId));
+        Switch networkSwitch = switchManagementUseCase.get().retrieveSwitch(Id.withId(switchId));
 
         return Uni.createFrom()
-                .item(networkManagementUseCase.removeNetworkFromSwitch(networkName, networkSwitch))
+                .item(networkManagementUseCase.get().removeNetworkFromSwitch(networkName, networkSwitch))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()

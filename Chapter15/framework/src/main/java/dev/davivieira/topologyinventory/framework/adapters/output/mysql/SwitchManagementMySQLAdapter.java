@@ -7,17 +7,18 @@ import dev.davivieira.topologyinventory.framework.adapters.output.mysql.mappers.
 import dev.davivieira.topologyinventory.framework.adapters.output.mysql.repository.SwitchManagementRepository;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 @ApplicationScoped
 public class SwitchManagementMySQLAdapter implements SwitchManagementOutputPort {
 
     @Inject
-    SwitchManagementRepository switchManagementRepository;
+    Instance<SwitchManagementRepository> switchManagementRepository;
 
     @Override
     public Switch retrieveSwitch(Id id) {
-        var switchData = switchManagementRepository.findById(id.getUuid()).subscribe().asCompletionStage().join();
+        var switchData = switchManagementRepository.get().findById(id.getUuid()).subscribe().asCompletionStage().join();
         return RouterH2Mapper.switchDataToDomain(switchData);
     }
 }

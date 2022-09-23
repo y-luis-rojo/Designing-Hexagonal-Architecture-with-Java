@@ -8,16 +8,18 @@ import dev.davivieira.topologyinventory.domain.service.NetworkService;
 import dev.davivieira.topologyinventory.domain.vo.IP;
 import dev.davivieira.topologyinventory.domain.vo.Id;
 import dev.davivieira.topologyinventory.domain.vo.Network;
+
 import java.util.function.Predicate;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 @ApplicationScoped
 public class NetworkManagementInputPort implements NetworkManagementUseCase {
 
     @Inject
-    RouterManagementOutputPort routerManagementOutputPort;
+    Instance<RouterManagementOutputPort> routerManagementOutputPort;
 
     @Override
     public Network createNetwork(
@@ -34,13 +36,13 @@ public class NetworkManagementInputPort implements NetworkManagementUseCase {
     public Switch addNetworkToSwitch(Network network, Switch networkSwitch) {
         Id routerId = networkSwitch.getRouterId();
         Id switchId = networkSwitch.getId();
-        EdgeRouter edgeRouter = (EdgeRouter) routerManagementOutputPort
+        EdgeRouter edgeRouter = (EdgeRouter) routerManagementOutputPort.get()
                 .retrieveRouter(routerId);
         Switch switchToAddNetwork = edgeRouter
                 .getSwitches()
                 .get(switchId);
         switchToAddNetwork.addNetworkToSwitch(network);
-        routerManagementOutputPort.persistRouter(edgeRouter);
+        routerManagementOutputPort.get().persistRouter(edgeRouter);
         return switchToAddNetwork;
     }
 
@@ -48,7 +50,7 @@ public class NetworkManagementInputPort implements NetworkManagementUseCase {
     public Switch removeNetworkFromSwitch(String networkName, Switch networkSwitch) {
         Id routerId = networkSwitch.getRouterId();
         Id switchId = networkSwitch.getId();
-        EdgeRouter edgeRouter = (EdgeRouter) routerManagementOutputPort
+        EdgeRouter edgeRouter = (EdgeRouter) routerManagementOutputPort.get()
                 .retrieveRouter(routerId);
         Switch switchToRemoveNetwork = edgeRouter
                 .getSwitches()
@@ -56,7 +58,7 @@ public class NetworkManagementInputPort implements NetworkManagementUseCase {
         Predicate<Network> networkPredicate = Network.getNetworkNamePredicate(networkName);
         var network = NetworkService.
                 findNetwork(switchToRemoveNetwork.getSwitchNetworks(), networkPredicate);
-        routerManagementOutputPort.persistRouter(edgeRouter);
+        routerManagementOutputPort.get().persistRouter(edgeRouter);
         return switchToRemoveNetwork.removeNetworkFromSwitch(network)
                 ? switchToRemoveNetwork
                 : null;

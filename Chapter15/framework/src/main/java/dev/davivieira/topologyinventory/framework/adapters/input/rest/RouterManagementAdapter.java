@@ -5,7 +5,6 @@ import dev.davivieira.topologyinventory.domain.entity.CoreRouter;
 import dev.davivieira.topologyinventory.domain.entity.Router;
 import dev.davivieira.topologyinventory.domain.vo.IP;
 import dev.davivieira.topologyinventory.domain.vo.Id;
-import dev.davivieira.topologyinventory.framework.adapters.output.mysql.repository.RouterManagementRepository;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -14,6 +13,7 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.DELETE;
@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response;
 public class RouterManagementAdapter {
 
     @Inject
-    RouterManagementUseCase routerManagementUseCase;
+    Instance<RouterManagementUseCase> routerManagementUseCase;
 
     @Transactional
     @GET
@@ -37,7 +37,7 @@ public class RouterManagementAdapter {
     @Operation(operationId = "retrieveRouter", description = "Retrieve a router from the network inventory")
     public Uni<Response> retrieveRouter(@PathParam("id") Id id) {
         return Uni.createFrom()
-                .item(routerManagementUseCase.retrieveRouter(id))
+                .item(routerManagementUseCase.get().retrieveRouter(id))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -50,7 +50,7 @@ public class RouterManagementAdapter {
     @Operation(operationId = "removeRouter", description = "Remove a router from the network inventory")
     public Uni<Response> removeRouter(@PathParam("id") Id id) {
         return Uni.createFrom()
-                .item(routerManagementUseCase.removeRouter(id))
+                .item(routerManagementUseCase.get().removeRouter(id))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -62,7 +62,7 @@ public class RouterManagementAdapter {
     @Path("/")
     @Operation(operationId = "createRouter", description = "Create and persist a new router on the network inventory")
     public Uni<Response> createRouter(CreateRouter createRouter) {
-        var router = routerManagementUseCase.createRouter(
+        var router = routerManagementUseCase.get().createRouter(
                 null,
                 createRouter.getVendor(),
                 createRouter.getModel(),
@@ -73,7 +73,7 @@ public class RouterManagementAdapter {
         );
 
         return Uni.createFrom()
-                .item(routerManagementUseCase.persistRouter(router))
+                .item(routerManagementUseCase.get().persistRouter(router))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -86,14 +86,14 @@ public class RouterManagementAdapter {
     @Operation(operationId = "addRouterToCoreRouter", description = "Add a router into a core router")
     public Uni<Response> addRouterToCoreRouter(
             @PathParam("routerId") String routerId, @PathParam("coreRouterId") String coreRouterId) {
-        Router router = routerManagementUseCase
+        Router router = routerManagementUseCase.get()
                 .retrieveRouter(Id.withId(routerId));
-        CoreRouter coreRouter = (CoreRouter) routerManagementUseCase
+        CoreRouter coreRouter = (CoreRouter) routerManagementUseCase.get()
                 .retrieveRouter(Id.withId(coreRouterId));
 
         return Uni.createFrom()
-                .item(routerManagementUseCase.
-                        addRouterToCoreRouter(router, coreRouter))
+                .item(routerManagementUseCase.get()
+                        .addRouterToCoreRouter(router, coreRouter))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
@@ -106,14 +106,14 @@ public class RouterManagementAdapter {
     @Operation(operationId = "removeRouterFromCoreRouter", description = "Remove a router from a core router")
     public Uni<Response> removeRouterFromCoreRouter(
             @PathParam("routerId") String routerId, @PathParam("coreRouterId") String coreRouterId) {
-        Router router = routerManagementUseCase
+        Router router = routerManagementUseCase.get()
                 .retrieveRouter(Id.withId(routerId));
-        CoreRouter coreRouter = (CoreRouter) routerManagementUseCase
+        CoreRouter coreRouter = (CoreRouter) routerManagementUseCase.get()
                 .retrieveRouter(Id.withId(coreRouterId));
 
         return Uni.createFrom()
-                .item(routerManagementUseCase.
-                        removeRouterFromCoreRouter(router, coreRouter))
+                .item(routerManagementUseCase.get()
+                        .removeRouterFromCoreRouter(router, coreRouter))
                 .onItem()
                 .transform(f -> f != null ? Response.ok(f) : Response.ok(null))
                 .onItem()
